@@ -99,6 +99,43 @@ Your server DOES NOT appear to protect against high-rate requests. It may be vul
 python flood_resistance_test.py https://yourdomain.com --concurrency 50 --duration 20
 ```
 
+### Slow Client Attack Test (slow_client_test.py)
+
+**Description:**
+A Python command-line tool that simulates slowloris-style attacks, where clients intentionally send requests with delayed/slow body transmission. It evaluates whether the server has timeout protections and can handle resource exhaustion from stalled connections.
+
+**How it Works:**
+- Sends multiple concurrent POST requests with intentionally slow payload transmission.
+- Chunks the request body and delays between chunks to keep connections open longer than normal.
+- Tracks response status codes, connection resets, and timeout errors.
+- Checks response bodies for timeout-related keywords.
+- Provides a summary of timeouts, connection resets, and latency patterns.
+- Gives a final verdict on whether the server protects against slow client attacks.
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 408 (Request Timeout) or 504 (Gateway Timeout) responses.
+- Connection resets when clients delay too long.
+- Timeout keywords detected in response body.
+- High latency followed by request failures.
+- Final verdict: Your server HAS protection against slow client attacks.
+
+##### If server is not protected:
+- Most or all requests return HTTP 200 despite slow transmission.
+- No connection resets or timeouts.
+- Server continues to accept slow requests indefinitely.
+- Final verdict: Your server DOES NOT appear to protect against slow client attacks. It may be vulnerable to slowloris or resource exhaustion attacks.
+
+**How to Run the test**
+```bash
+python slow_client_test.py https://yourdomain.com --concurrency 10 --duration 15 --delay 2.0
+```
+
+**Arguments:**
+- `--concurrency` (int, default 10): Number of parallel slow clients
+- `--duration` (int, default 10): Test duration in seconds
+- `--delay` (float, default 2.0): Delay between payload chunks in seconds
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.
