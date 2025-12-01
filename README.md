@@ -96,7 +96,7 @@ Your server DOES NOT appear to protect against high-rate requests. It may be vul
 
 **How to Run the test**
 ```bash
-python flood_resistance_test.py https://yourdomain.com --concurrency 50 --duration 20
+python tests/flood_resistance_test.py https://yourdomain.com --concurrency 50 --duration 20
 ```
 
 ### Slow Client Attack Test (slow_client_test.py)
@@ -128,7 +128,7 @@ A Python command-line tool that simulates slowloris-style attacks, where clients
 
 **How to Run the test**
 ```bash
-python slow_client_test.py https://yourdomain.com --concurrency 10 --duration 15 --delay 2.0
+python tests/slow_client_test.py https://yourdomain.com --concurrency 10 --duration 15 --delay 2.0
 ```
 
 **Arguments:**
