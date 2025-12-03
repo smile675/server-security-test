@@ -28,7 +28,7 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The Header Injection test sends requests with malformed, oversized, or numerous header fields to discover header parsing and validation limits. It examines responses for HTTP 400/431 (Header Fields Too Large), connection resets, or WAF blocks. The test covers cases such as very long `User-Agent` values, duplicated headers, extremely large cookie headers, and illegal characters in header names/values. Observed signals include header-related status codes, header truncation behavior, and server logs (if available). This probes whether front-end servers correctly limit header sizes, helping prevent header-based resource exhaustion and input-parsing vulnerabilities.
 
-- [ ] `sql_injection_test.py`
+- [x] `sql_injection_test.py`
 
   Description:
 

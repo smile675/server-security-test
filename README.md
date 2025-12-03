@@ -205,6 +205,42 @@ python tests/header_injection_test.py https://yourdomain.com
 - `--many-headers` (int, default 200): Number of headers to send in the "many headers" case
 - `--duplicate-count` (int, default 50): Number of duplicate values simulated (comma-separated simulation)
 
+### SQL Injection Test (sql_injection_test.py)
+
+**Description:**
+Sends a curated set of benign-but-malicious-looking SQL injection payloads (via URL parameters and request bodies) to detect whether the server has input validation, WAF protections, or error-message leakage that indicates potential SQL injection vulnerability.
+
+**How it Works:**
+- Sends a list of recognizable SQL injection patterns (e.g., `' OR '1'='1`, `UNION SELECT`, boolean probes) as URL parameters.
+- Tracks HTTP status codes, latencies, and connection-level errors.
+- Scans response bodies for:
+  - **WAF keywords**: "sql injection", "attack detected", "blocked", "403" (indicating WAF/protection).
+  - **Database error keywords**: "sql syntax", "table not found", "column not found", "postgresql", "mysql", etc. (indicating error leakage).
+- Produces a summary and protection analysis.
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 403 (WAF blocks malicious patterns).
+- HTTP 400 (Server rejects suspicious input).
+- No database error messages in responses (error suppression).
+- Final verdict: Server has protections against SQL injection.
+
+##### If server is vulnerable:
+- Payloads accepted without rejection (HTTP 200).
+- Database error messages leaked in responses (e.g., "SQL syntax error", "table not found").
+- Final verdict: Review input validation, enable error suppression, and deploy WAF rules.
+
+**How to Run the test**
+```bash
+python tests/sql_injection_test.py https://yourdomain.com/search --param q --concurrency 5 --duration 20
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com/search`)
+- `--param` (str, default "q"): Query parameter name to inject payloads into
+- `--concurrency` (int, default 5): Parallel workers
+- `--duration` (int, default 20): Test duration in seconds
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.
