@@ -232,7 +232,7 @@ Sends a curated set of benign-but-malicious-looking SQL injection payloads (via 
 
 **How to Run the test**
 ```bash
-python tests/sql_injection_test.py https://yourdomain.com/search
+python tests/sql_injection_test.py https://yourdomain.com/search 
 ```
 
 **Arguments:**
@@ -273,9 +273,43 @@ python tests/protocol_confusion_test.py yourdomain.com
 
 **Arguments:**
 - `host`: Target hostname (e.g., `yourdomain.com`)
-- `--port` (int, default 80): Target port (default 443 if scheme is https)
-- `--scheme` (str, default "http"): Protocol scheme (`http` or `https`)
-- `--duration` (int, default 30): Test duration in seconds
+- `--port` (int): Target port (default 443 if scheme is https)
+- `--scheme` (str): Protocol scheme (`http` or `https`)
+- `--duration` (int): Test duration in seconds
+
+### Malformed Request Test (malformed_request_test.py)
+
+**Description:**
+Sends requests with structurally invalid payloads and header/body mismatches (e.g., `Content-Length` not matching body size, chunked encoding errors, broken multipart boundaries) to verify whether the server properly validates request framing and returns safe error responses rather than exposing stack traces or leaking internal state.
+
+**How it Works:**
+- Generates a series of malformed requests with 13 different framing violation patterns (e.g., `Content-Length` smaller than body, mismatched `Content-Length`, chunked encoding with invalid chunks, broken multipart boundaries, conflicting `Transfer-Encoding` and `Content-Length` headers).
+- Sends each malformed request and tracks HTTP status codes, latencies, and response content.
+- Scans response bodies for error-leakage keywords (e.g., "traceback", "exception", "file not found", "module error", stack traces).
+- Produces a summary and a protection analysis indicating whether the server safely handles malformed input.
+
+**Expected Results:**
+##### If server is robust:
+- HTTP 400 (Bad Request), 411 (Length Required), or 413 (Payload Too Large) for framing violations.
+- Connection resets for protocol-level violations (expected defensive behavior).
+- No stack traces, exception details, or internal error messages in responses.
+- Final verdict: Server safely rejects malformed requests and suppresses error leakage.
+
+##### If server is vulnerable:
+- Malformed requests accepted (HTTP 200) without detection.
+- Error messages, stack traces, or file paths visible in responses.
+- No defensive connection resets or proper error responses.
+- Final verdict: Server may expose internal details on malformed input; review error suppression and request validation.
+
+**How to Run the test**
+```bash
+python tests/malformed_request_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com`)
+- `--concurrency` (int): Number of parallel workers
+- `--duration` (int): Test duration in seconds
 
 # Contribution Guide
 
