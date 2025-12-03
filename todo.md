@@ -34,7 +34,7 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The SQL Injection probe sends a curated set of benign-but-malicious-looking payloads (URL parameters and POST bodies) that commonly appear in SQL injection attempts (e.g., `' OR '1'='1`, `UNION SELECT`, boolean condition probes). The purpose is not to exploit data; instead the test checks for server-side input validation, WAF triggers, or error-message leakage that indicates unsanitized database access. Measurements include WAF/403 hits, application error responses, and any database error content returned. Keep payloads non-destructive and ensure tests are run only on systems you control, because even harmless probes can trigger logging or protective responses.
 
-- [ ] `protocol_confusion_test.py`
+- [x] `protocol_confusion_test.py`
 
   Description:
 

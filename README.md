@@ -232,7 +232,7 @@ Sends a curated set of benign-but-malicious-looking SQL injection payloads (via 
 
 **How to Run the test**
 ```bash
-python tests/sql_injection_test.py https://yourdomain.com/search --param q --concurrency 5 --duration 20
+python tests/sql_injection_test.py https://yourdomain.com/search
 ```
 
 **Arguments:**
@@ -240,6 +240,42 @@ python tests/sql_injection_test.py https://yourdomain.com/search --param q --con
 - `--param` (str, default "q"): Query parameter name to inject payloads into
 - `--concurrency` (int, default 5): Parallel workers
 - `--duration` (int, default 20): Test duration in seconds
+
+### Protocol Confusion Test (protocol_confusion_test.py)
+
+**Description:**
+Sends intentionally malformed HTTP requests to validate the server's protocol-compliance and parser robustness. It tests the server's ability to handle missing CRLF sequences, invalid HTTP methods, wrong protocol versions, malformed chunk boundaries, and other HTTP grammar violations. The goal is to discover whether the server fails safely with graceful 4xx errors or if it crashes, hangs, or exhibits unexpected behavior.
+
+**How it Works:**
+- Sends a series of malformed HTTP requests with various violations (e.g., `GET / HTTP/2.5`, missing colons in headers, invalid chunked encoding, oversized Content-Length, null bytes, etc.).
+- Uses raw sockets to send requests directly (bypassing HTTP client libraries that may auto-correct).
+- Tracks outcomes: HTTP responses (including status codes), connection resets, timeouts, connection refusals, and exceptions.
+- Produces a summary and protection analysis based on observed behavior.
+
+**Expected Results:**
+##### If server is robust:
+- Malformed requests return HTTP 400 (Bad Request) or 405 (Method Not Allowed).
+- Connection resets for egregiously malformed input (protection against parser exploits).
+- No timeouts or server crashes.
+- Final verdict: Server gracefully rejects malformed HTTP.
+
+##### If server is vulnerable:
+- Malformed requests accepted without error (HTTP 200).
+- Server timeouts or hangs on certain patterns.
+- HTTP 500 (Internal Server Error) responses.
+- Unexplained connection resets or crashes.
+- Final verdict: Server parser may be vulnerable to DoS or protocol confusion attacks.
+
+**How to Run the test**
+```bash
+python tests/protocol_confusion_test.py yourdomain.com
+```
+
+**Arguments:**
+- `host`: Target hostname (e.g., `yourdomain.com`)
+- `--port` (int, default 80): Target port (default 443 if scheme is https)
+- `--scheme` (str, default "http"): Protocol scheme (`http` or `https`)
+- `--duration` (int, default 30): Test duration in seconds
 
 # Contribution Guide
 
