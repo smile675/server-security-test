@@ -16,7 +16,7 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The Slow Client test (slowloris-style) simulates clients that send request bodies very slowly (chunked with delays) to keep TCP connections open and consume connection slots. It records timeouts, connection resets, HTTP 408/504 responses, and latency profiles. The test helps detect whether the server enforces request read timeouts, idle-connection timeouts, or actively closes slow connections to protect resources. Detection signals include per-request `asyncio.TimeoutError`, `aiohttp.ClientConnectionError` (resets), HTTP 408/504 responses, and timeout-indicating keywords in responses. Start with small concurrency and short durations.
 
-- [ ] `large_payload_test.py`
+- [x] `large_payload_test.py`
 
   Description:
 
@@ -76,14 +76,3 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The Resource Exhaustion (CPU) test triggers server-side expensive operations (safe, non-destructive inputs that cause heavy processing) to see whether CPU-intensive requests are protected by rate limits or cost-based throttling. Examples include requests that cause expensive regexes or large data parsing on the server. The test monitors response times, CPU usage (if available), and error patterns. Design inputs carefully — avoid destructive operations — and run in a controlled environment; the aim is to confirm that the server enforces limits to prevent a few expensive requests from degrading overall availability.
 
-
----
-
-How to use this file:
-- Mark completed tests with `[x]` and add notes if you expand a test.
-- Implement tests one-by-one; update `README.md` with usage examples for each new test file.
-- Consider extracting shared helpers to `tests_common.py` when you see repeated code across tests.
-
-If you want, I can:
-- Add short example commands and `argparse` templates for each planned test.
-- Implement the next test you choose (e.g., `large_payload_test.py`).

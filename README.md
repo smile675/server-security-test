@@ -136,6 +136,40 @@ python tests/slow_client_test.py https://yourdomain.com --concurrency 10 --durat
 - `--duration` (int, default 10): Test duration in seconds
 - `--delay` (float, default 2.0): Delay between payload chunks in seconds
 
+### Large Payload Test (large_payload_test.py)
+
+**Description:**
+Simulates clients uploading very large request bodies to a target endpoint to verify whether the server enforces request size limits, times out, or closes connections during heavy uploads.
+
+**How it Works:**
+- Streams large POST bodies (configurable size per request) in small chunks to avoid allocating the entire payload in memory.
+- Runs multiple parallel upload workers to increase load and exercise server/proxy limits.
+- Tracks HTTP status codes, latencies, connection resets, timeouts, and looks for common "payload too large" messages in responses.
+- Produces a summary and a protection analysis (detects HTTP 413, resets, 502/503/504 gateway errors, and related behavior).
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 413 (Payload Too Large) or explicit limit messages in responses.
+- Connection resets during upload (server/proxy closes uploads it deems too large).
+- Gateway errors/timeouts (502/503/504) if upstream refuses large uploads.
+- Final verdict: Server enforces size limits or otherwise protects against large uploads.
+
+##### If server is not protected:
+- Most uploads complete successfully (HTTP 200 or similar).
+- No explicit limit messages or connection resets.
+- Final verdict: Server may accept arbitrarily large uploads — consider adding request size limits and proxy protections.
+
+**How to Run the test**
+```bash
+python tests/large_payload_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `--concurrency` (int, default 5): Number of parallel upload workers
+- `--duration` (int, default 30): Test duration in seconds
+- `--size-mb` (float, default 21.0): Payload size per request in MB
+- `--chunk-size` (int, default 65536): Upload chunk size in bytes
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.
