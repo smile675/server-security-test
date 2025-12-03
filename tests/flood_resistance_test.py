@@ -52,7 +52,7 @@ async def worker(session, url, results):
 
 
 async def run_test(url, concurrency, duration):
-    print("\nStarting DDOS protection test")
+    print("\nStarting  Flood Resistance test")
     print(f"URL: {url}")
     print(f"Concurrency: {concurrency}")
     print(f"Duration: {duration}s")
@@ -105,7 +105,7 @@ async def run_test(url, concurrency, duration):
 
     # 1. Rate limiting (429)
     if results["status_codes"].get(429, 0) > 0:
-        print("Rate‑limiting detected (HTTP 429)")
+        print("Rate - limiting detected (HTTP 429)")
         protected = True
     else:
         print("No HTTP 429 rate limiting detected.")
@@ -117,7 +117,7 @@ async def run_test(url, concurrency, duration):
 
     # 3. Service overload (503)
     if results["status_codes"].get(503, 0) > 0:
-        print("Server returned 503 Service Unavailable – overload protection active")
+        print("Server returned 503 Service Unavailable - overload protection active")
         protected = True
 
     # 4. Keyword block detection
@@ -144,7 +144,7 @@ async def run_test(url, concurrency, duration):
 
 
 def flood_resistance_test():
-    parser = argparse.ArgumentParser(description="DDoS / Load Test + Protection Detection")
+    parser = argparse.ArgumentParser(description="Test server resilience to flood resistance attacks")
     parser.add_argument("url", help="Target URL")
     parser.add_argument("--concurrency", type=int, default=10, help="Number of parallel workers")
     parser.add_argument("--duration", type=int, default=10, help="Test duration in seconds")
