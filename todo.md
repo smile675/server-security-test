@@ -52,7 +52,7 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The Auth Brute-Force test exercises authentication endpoints with low-rate credential trials to detect whether the server has account lockout, rate-limiting, or captcha defenses. The test sends configurable username/password combinations at controlled rates and records HTTP 200/401/429 responses and any account lock notifications. This test is intentionally rate-limited by default and should never be used against third-party services. It helps determine whether credential-guessing protections exist and whether additional mitigations (rate-limit per-IP, per-account lockout) are required.
 
-- [ ] `directory_traversal_test.py`
+- [x] `directory_traversal_test.py`
 
   Description:
 

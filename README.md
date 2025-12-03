@@ -353,6 +353,43 @@ python tests/auth_bruteforce_test.py https://yourdomain.com
 - `--duration` (int): Test duration in seconds
 - `--rate-limit-delay` (float): Delay in seconds between each credential attempt (per worker)
 
+### Directory Traversal Test (directory_traversal_test.py)
+
+**Description:**
+Issues specially crafted path requests (e.g., `../`, encoded traversal sequences) and requests for known sensitive files to check for filesystem access leaks or incorrect path normalization. The test verifies server and application-layer path sanitization and returns observations like 200 (sensitive file returned), 403 (forbidden), or 404 (not found). The test is non-destructive and should only request public or non-sensitive endpoints in practice.
+
+**How it Works:**
+- Generates a series of directory traversal payloads including basic traversal (`../`), URL-encoded variants (`%2e%2e%2f`), double-encoded sequences, backslash attempts, null-byte injection, and Unicode encoding.
+- Also requests known sensitive files (e.g., `/etc/passwd`, `/etc/shadow`, `.env`, `.git/config`, `web.config`).
+- Sends GET requests with these payloads appended to a configurable base path and tracks HTTP status codes and response content.
+- Scans response bodies for sensitive file indicators (e.g., "root:", "PATHEXT=", "<?php", "password", "apikey", "secret").
+- Produces a summary and a protection verdict indicating whether the server properly validates and sanitizes paths.
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 404 (Not Found) or HTTP 403 (Forbidden) for traversal attempts.
+- No sensitive files or credentials returned (HTTP 200 with file content).
+- Path normalization blocks encoded/obfuscated traversal attempts.
+- No sensitive content indicators in responses.
+- Final verdict: Server properly sanitizes paths and restricts filesystem access.
+
+##### If server is vulnerable:
+- HTTP 200 (success) responses with traversal payloads, potentially exposing files outside intended directory.
+- Sensitive file content leaked (e.g., `/etc/passwd` contents, environment variables, API keys).
+- Encoded or double-encoded traversal attempts bypassing basic filters.
+- Final verdict: Implement strict path validation, sanitization, and access controls. Deploy WAF rules to block traversal patterns.
+
+**How to Run the test**
+```bash
+python tests/directory_traversal_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com`)
+- `--base-path` (str): Base path to append traversal payloads to (e.g., `/`, `/download`, `/api/files`)
+- `--concurrency` (int): Number of parallel workers
+- `--duration` (int): Test duration in seconds
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.
