@@ -390,6 +390,123 @@ python tests/directory_traversal_test.py https://yourdomain.com
 - `--concurrency` (int): Number of parallel workers
 - `--duration` (int): Test duration in seconds
 
+### TLS Handshake Test (tls_handshake_test.py)
+
+**Description:**
+Performs a range of TLS/SSL negotiation scenarios — different protocol versions, cipher suites, and certificate validation — to detect weak configurations and handshake robustness. The test checks whether the server properly rejects obsolete TLS versions (e.g., SSLv3, TLSv1.0, TLSv1.1), offers only strong ciphers, validates certificates properly, and handles handshake robustness without crashing.
+
+**How it Works:**
+- Tests multiple TLS/SSL protocol versions (SSLv3, TLSv1.0, TLSv1.1, TLSv1.2, TLSv1.3) to determine which are accepted.
+- Attempts to negotiate weak cipher suites (RC4, DES, 3DES, MD5, NULL, EXPORT, aNULL, eNULL) and tracks acceptance/rejection.
+- Validates certificate chain and presence; checks for certificate validity issues.
+- Tracks successful handshakes with deprecated protocols or weak ciphers (signs of vulnerability).
+- Produces a summary and protection verdict indicating TLS configuration strength.
+
+**Expected Results:**
+##### If server is protected:
+- Only TLSv1.2 and TLSv1.3 are accepted.
+- Deprecated versions (SSLv3, TLSv1.0, TLSv1.1) are rejected.
+- Weak ciphers are not negotiated.
+- Valid certificate chain is present and validates correctly.
+- Final verdict: TLS configuration meets modern security standards.
+
+##### If server is vulnerable:
+- Deprecated TLS versions (SSLv3, TLSv1.0, TLSv1.1) are accepted.
+- Weak or export ciphers are negotiated.
+- Certificate chain validation fails or no certificate present.
+- Final verdict: Disable deprecated protocols, remove weak ciphers, and ensure valid certificate deployment.
+
+**How to Run the test**
+```bash
+python tests/tls_handshake_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com`)
+
+### WebSocket Flood Test (websocket_flood_test.py)
+
+**Description:**
+Opens many concurrent WebSocket connections and/or sends high-frequency frames to test server support for real-time protocols. The test checks for connection limits, frame-dropping, server memory growth, and application-level backpressure handling. It is useful when the server hosts WebSocket or other persistent real-time services.
+
+**How it Works:**
+- Opens a configurable number of concurrent WebSocket connections to a target endpoint.
+- Each connection sends a series of test frames with configurable delays between them.
+- Tracks successful connection establishments, connection timeouts, connection refusals, and file descriptor exhaustion.
+- Monitors frame transmission and reception; detects frame timeouts and connection closures during send.
+- Calculates frame latency statistics and identifies frame-dropping or throttling behavior.
+- Produces a summary and protection verdict indicating whether the server enforces resource limits.
+
+**Expected Results:**
+##### If server is protected:
+- Connection limits enforced (not all concurrent requests accepted).
+- Frame dropping or throttling detected under load.
+- Backpressure signals: connection closure, receive timeouts.
+- Per-connection resource caps preventing memory exhaustion.
+- Final verdict: Server has WebSocket resource protections.
+
+##### If server is vulnerable:
+- All connection attempts accepted (no connection limit).
+- Frames transmitted and received without dropping.
+- No throttling or backpressure observed.
+- Potential for memory exhaustion with many concurrent connections.
+- Final verdict: Add connection limits, frame rate limiting, and per-connection memory caps.
+
+**How to Run the test**
+```bash
+python tests/websocket_flood_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com` or `wss://yourdomain.com`)
+- `--ws-path` (str): WebSocket path (e.g., `/ws`, `/socket.io`)
+- `--concurrency` (int): Number of concurrent WebSocket connections
+- `--duration` (int): Test duration in seconds
+- `--frame-delay` (float): Delay in seconds between frames per connection
+
+### Resource Exhaustion (CPU) Test (resource_exhaustion_cpu_test.py)
+
+**Description:**
+Triggers server-side expensive operations (safe, non-destructive inputs that cause heavy processing) to see whether CPU-intensive requests are protected by rate limits or cost-based throttling. Examples include requests that cause expensive regexes, large data parsing, or deeply nested JSON/XML processing on the server. The test monitors response times, error patterns, and detection of server degradation under load.
+
+**How it Works:**
+- Generates a series of CPU-intensive payloads designed to trigger expensive server-side processing:
+  - Regex backtracking patterns (e.g., `a`*1000 + `b`, unbalanced parentheses)
+  - Deeply nested JSON and XML structures
+  - Large string manipulation operations
+  - Large numeric string parsing
+- Sends these payloads concurrently to a configurable endpoint.
+- Tracks HTTP status codes, latencies, timeouts, rate-limit responses (429), and server errors (5xx).
+- Scans response bodies for error/exception messages indicating server stress.
+- Analyzes latency trends; if latency increases significantly over time, this indicates resource exhaustion or throttling.
+- Produces a summary and protection verdict.
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 429 (Too Many Requests) responses indicating rate-limiting.
+- Response degradation: slow requests or timeouts indicating throttling.
+- Latency increase over test duration (sign of exhaustion detection and protection).
+- No unexpected server errors or crashes.
+- Final verdict: Server protects against CPU exhaustion via rate-limiting or cost tracking.
+
+##### If server is vulnerable:
+- All requests processed without rate-limiting (no 429 responses).
+- Consistent low latency maintained; no degradation under load.
+- Server errors (5xx) or timeouts indicating crash risk.
+- No error suppression; stack traces or internal details leaked.
+- Final verdict: Add rate-limiting, CPU cost calculation, and graceful degradation.
+
+**How to Run the test**
+```bash
+python tests/resource_exhaustion_cpu_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com`)
+- `--endpoint` (str): Endpoint to send CPU-intensive payloads to
+- `--concurrency` (int): Number of parallel workers
+- `--duration` (int): Test duration in seconds
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.

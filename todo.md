@@ -58,19 +58,19 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The Directory Traversal test issues specially crafted path requests (e.g., `../`, encoded traversal sequences) and requests for known sensitive files to check for filesystem access leaks or incorrect path normalization. It verifies server and application-layer path sanitization and returns observations like 200 (sensitive file returned), 403 (forbidden), or 404 (not found). The test is non-destructive and should only request public or non-sensitive endpoints in practice. It helps find misconfigurations where static file handlers or application routing could expose filesystem contents.
 
-- [ ] `tls_handshake_test.py`
+- [x] `tls_handshake_test.py`
 
   Description:
 
   The TLS Handshake test performs a range of TLS/SSL negotiation scenarios — different protocol versions, cipher suites, and malformed handshakes — to detect weak configurations and handshake robustness. It can check whether the server properly rejects obsolete TLS versions (e.g., SSLv3), offers only strong ciphers, and handles malformed client-hello sequences without crashing. Signals include successful negotiation with deprecated ciphers (bad), handshake failures (expected for disabled configs), and connection resets. This test assists in hardening TLS configuration and preventing downgrade or memory corruption issues in TLS stacks.
 
-- [ ] `websocket_flood_test.py`
+- [x] `websocket_flood_test.py`
 
   Description:
 
   The WebSocket Flood test opens many concurrent WebSocket connections and/or sends high-frequency frames to test server support for real-time protocols. It checks for connection limits, frame-dropping, server memory growth, and any application-level backpressure handling. Observed signals include accepted connection counts, connection closures by server, and latency for echo/response frames. This test is useful when the server hosts WebSocket or other persistent real-time services and helps verify that per-connection resource caps and message throttling are in place.
 
-- [ ] `resource_exhaustion_cpu_test.py`
+- [x] `resource_exhaustion_cpu_test.py`
 
   Description:
 
