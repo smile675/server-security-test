@@ -311,6 +311,48 @@ python tests/malformed_request_test.py https://yourdomain.com
 - `--concurrency` (int): Number of parallel workers
 - `--duration` (int): Test duration in seconds
 
+### Auth Brute-Force Test (auth_bruteforce_test.py)
+
+**Description:**
+Exercises authentication endpoints with low-rate credential trials to detect whether the server has account lockout, rate-limiting, or captcha defenses. The test sends configurable username/password combinations at controlled rates and records HTTP 200/401/429 responses and any account lock notifications. This test is intentionally rate-limited by default and should never be used against third-party services.
+
+**How it Works:**
+- Sends credential trials (username/password pairs) to a target authentication endpoint at a controlled rate per worker.
+- Uses a predefined list of common credentials (e.g., `admin/password`, `root/123456`, `test/password`) to simulate credential-guessing attacks.
+- Tracks HTTP status codes (200, 401, 403, 429, etc.), response times, and connection-level errors.
+- Scans response bodies for defense indicators:
+  - **Rate-limiting keywords**: "rate limit", "too many", "throttle", "retry after"
+  - **Account lock keywords**: "locked", "disabled", "suspended", "blocked"
+  - **Captcha indicators**: "captcha", "human", "verify", "robot"
+- Produces a summary and a protection verdict indicating whether the server defends against brute-force attacks.
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 429 (Too Many Requests) responses indicating rate-limiting.
+- HTTP 403 (Forbidden) or progressive rejection after multiple failed attempts.
+- Account lock keywords or notifications in responses.
+- Captcha challenges or human verification prompts detected.
+- Final verdict: Server has brute-force protections in place.
+
+##### If server is vulnerable:
+- Repeated HTTP 401 (Unauthorized) responses without rate-limiting.
+- HTTP 200 (success) responses accepted after multiple credential trials.
+- No account lockout or rate-limiting observed.
+- No captcha or human verification challenges.
+- Final verdict: Server lacks brute-force defenses; add rate-limiting, account lockout, and/or captcha.
+
+**How to Run the test**
+```bash
+python tests/auth_bruteforce_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `url`: Target URL (e.g., `https://yourdomain.com`)
+- `--auth-endpoint` (str): Authentication endpoint path (e.g., `/login`, `/api/auth`)
+- `--concurrency` (int): Number of parallel brute-force workers
+- `--duration` (int): Test duration in seconds
+- `--rate-limit-delay` (float): Delay in seconds between each credential attempt (per worker)
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.

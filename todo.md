@@ -40,13 +40,13 @@ This file lists planned security tests for the project. Each item includes a sho
 
   This test sends intentionally malformed HTTP requests — for example missing CRLF sequences, invalid HTTP methods, wrong protocol versions, or mixed-up chunk boundaries — to validate the server's protocol-compliance and parser robustness. It aims to discover how strictly the server enforces HTTP grammar and whether malformed inputs result in crashes, connection resets, or graceful 400/405 responses. The test records connection-level errors, abnormal process exits, and status codes. It is useful for catching parsers that behave unpredictably under malformed input and for ensuring the server fails safely.
 
-- [ ] `malformed_request_test.py`
+- [x] `malformed_request_test.py`
 
   Description:
 
   The Malformed Request test focuses on structurally invalid payloads and header/body mismatches (e.g., `Content-Length` not matching body size, chunked encoding errors, broken multipart boundaries). It checks whether the server properly validates incoming request framing and returns safe error responses rather than exposing stack traces or leaking internal state. Signals include 400-series responses, connection closes, and application error outputs. This test helps validate input validation layers, reverse proxy behavior, and application robustness against protocol framing anomalies.
 
-- [ ] `auth_bruteforce_test.py`
+- [x] `auth_bruteforce_test.py`
 
   Description:
 
