@@ -22,7 +22,7 @@ This file lists planned security tests for the project. Each item includes a sho
 
   The Large Payload test sends POST or PUT requests with increasingly large payloads (configurable sizes and step increments) to evaluate server upload limits and memory/IO protections. It checks for HTTP 413 (Payload Too Large), HTTP 400 responses, connection drops during upload, and server-side memory or process crashes. The test should progressively increase payload size so that the operator can pinpoint threshold behavior. Results include counts of payload rejects, status codes, and latencies for large uploads. This test helps validate server and application-layer limits (e.g., nginx `client_max_body_size`, application validation) and informs safe upload size configuration.
 
-- [ ] `header_injection_test.py`
+- [x] `header_injection_test.py`
 
   Description:
 

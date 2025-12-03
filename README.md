@@ -170,6 +170,41 @@ python tests/large_payload_test.py https://yourdomain.com
 - `--size-mb` (float, default 21.0): Payload size per request in MB
 - `--chunk-size` (int, default 65536): Upload chunk size in bytes
 
+### Header Injection Test (header_injection_test.py)
+
+**Description:**
+Sends requests with malformed, oversized, or numerous header fields to discover header parsing and validation limits. The test helps detect whether front-end servers or WAFs properly limit header sizes and counts and whether malformed headers cause connection resets or parsing errors.
+
+**How it Works:**
+- Sends requests that exercise a range of header abuses: very long header values (e.g., `User-Agent`), extremely large `Cookie` headers, many distinct headers, duplicated header values, and attempts at illegal header names.
+- Tracks HTTP status codes (400, 431, 403, etc.), latencies, connection resets, and client-side exceptions.
+- Scans response bodies for common block or error messages (e.g., "Header Fields Too Large", "bad request").
+- Produces a summary and a protection analysis indicating whether header limits or WAF protections are in effect.
+
+**Expected Results:**
+##### If server is protected:
+- HTTP 431 (Header Fields Too Large) or HTTP 400 for malformed headers.
+- HTTP 403 if a WAF/firewall blocks requests.
+- Connection resets or socket errors when the server/proxy rejects oversized headers.
+- Final verdict: Server enforces header limits and resists header-based abuse.
+
+##### If server is not protected:
+- Most requests succeed (HTTP 200) even with oversized/duplicate headers.
+- No header-specific error messages detected.
+- Final verdict: Consider enforcing header size/count limits at the proxy (e.g., Nginx) or WAF.
+
+**How to Run the test**
+```bash
+python tests/header_injection_test.py https://yourdomain.com
+```
+
+**Arguments:**
+- `--concurrency` (int, default 5): Parallel workers
+- `--duration` (int, default 20): Test duration in seconds
+- `--max-header-kb` (int, default 64): Approximate maximum header size to attempt (KB)
+- `--many-headers` (int, default 200): Number of headers to send in the "many headers" case
+- `--duplicate-count` (int, default 50): Number of duplicate values simulated (comma-separated simulation)
+
 # Contribution Guide
 
 If you would like to contribute to this project, please follow the [Contribution Guide](CONTRIBUTING.md) for instructions on how to contribute effectively.
