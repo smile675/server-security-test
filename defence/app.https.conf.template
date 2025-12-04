@@ -1,0 +1,131 @@
+server {
+    listen 443 ssl http2;
+    server_name ${DOMAIN};
+
+    # TLS files (letsencrypt path is common in Docker setups)
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+
+    # Security headers
+    server_tokens off;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains; preload" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self'" always;
+
+    # Hide backend headers
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header X-Runtime;
+
+    # Slow-client protections
+    client_header_timeout 30s;
+    client_body_timeout 60s;
+    send_timeout 30s;
+
+    # Buffer POST body before passing to backend
+    proxy_request_buffering on;
+
+    # Limit sizes
+    client_max_body_size 20M;
+
+    # Enable flood protection (zones declared in nginx.https.conf)
+    limit_req zone=req_limit_per_ip burst=20 nodelay;
+    limit_conn conn_limit_per_ip 20;
+
+    # Custom error pages
+    error_page 429 /429.html;
+    error_page 503 /503.html;
+    error_page 413 /413.html;
+    error_page 408 /408.html;
+
+    location ~ ^/(408|413|429|503)\.html$ {
+        root /var/www/safety;
+    }
+
+    # Static and media
+    location /static/ {
+        alias /app/staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+    }
+
+    location /media/ {
+        alias /app/media/;
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+    }
+
+    # Maintenance switch
+    if (-f /deployment/processing/.maintaining) {
+        return 599;
+    }
+    error_page 599 @maintenance;
+    location @maintenance {
+        root /var/www/maintenance;
+        try_files /maintenance.html =599;
+    }
+
+    location /maintenance.html {
+        root /var/www/maintenance;
+    }
+
+    # Health endpoint (fast, no logging)
+    location = /healthz {
+        access_log off;
+        add_header Content-Type "text/plain";
+        return 200 'ok';
+    }
+
+    # Deny direct access to common sensitive files
+    location ~* (?:\.env|\.git|wp-config\.php|config\.php|\.htaccess|web\.config)$ {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+
+    # Block obvious traversal patterns and suspicious UAs (maps in global conf)
+    if ($bad_ua) {
+        return 403;
+    }
+    if ($bad_uri) {
+        return 404;
+    }
+
+    # Protect authentication endpoints with tighter limits
+    location ~* /(?:login|signin|auth|api/auth) {
+        limit_req zone=req_limit_login burst=5 nodelay;
+        limit_conn conn_limit_per_ip 3;
+        proxy_pass http://web_app;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Main application proxy
+    location / {
+        proxy_pass http://web_app;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Protect upstream with buffering/timeouts
+        proxy_buffering on;
+        proxy_buffers 8 16k;
+        proxy_busy_buffers_size 32k;
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 15s;
+        proxy_read_timeout 30s;
+    }
+
+    # Reject unexpected methods early
+    if ($request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$) {
+        return 405;
+    }
+}
