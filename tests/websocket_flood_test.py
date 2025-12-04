@@ -9,7 +9,6 @@ frame-dropping, and application-level backpressure handling.
 import asyncio
 import argparse
 import time
-from collections import defaultdict
 from datetime import datetime
 from urllib.parse import urlparse
 

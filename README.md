@@ -67,7 +67,7 @@ This script helps you evaluate:
 ## Tests Includes
 The following tests are available. We will be keep adding more tests as we progress.
 
-### Flood‑Resistance Test (flood_resistance_test.py)
+### [Flood‑Resistance Test (flood_resistance_test.py)](tests/flood_resistance_test.py)
 
 **Description:**
 A Python command-line tool that evaluates how a server responds to high-frequency requests. It detects whether the server has protections such as rate-limiting, firewall/WAF rules, or throttling mechanisms in place.
@@ -99,7 +99,7 @@ Your server DOES NOT appear to protect against high-rate requests. It may be vul
 python tests/flood_resistance_test.py https://yourdomain.com --concurrency 50 --duration 20
 ```
 
-### Slow Client Attack Test (slow_client_test.py)
+### [Slow Client Attack Test (slow_client_test.py)](tests/slow_client_test.py)
 
 **Description:**
 A Python command-line tool that simulates slowloris-style attacks, where clients intentionally send requests with delayed/slow body transmission. It evaluates whether the server has timeout protections and can handle resource exhaustion from stalled connections.
@@ -136,7 +136,7 @@ python tests/slow_client_test.py https://yourdomain.com --concurrency 10 --durat
 - `--duration` (int, default 10): Test duration in seconds
 - `--delay` (float, default 2.0): Delay between payload chunks in seconds
 
-### Large Payload Test (large_payload_test.py)
+### [Large Payload Test (large_payload_test.py)](tests/large_payload_test.py)
 
 **Description:**
 Simulates clients uploading very large request bodies to a target endpoint to verify whether the server enforces request size limits, times out, or closes connections during heavy uploads.
@@ -170,7 +170,7 @@ python tests/large_payload_test.py https://yourdomain.com
 - `--size-mb` (float, default 21.0): Payload size per request in MB
 - `--chunk-size` (int, default 65536): Upload chunk size in bytes
 
-### Header Injection Test (header_injection_test.py)
+### [Header Injection Test (header_injection_test.py)](tests/header_injection_test.py)
 
 **Description:**
 Sends requests with malformed, oversized, or numerous header fields to discover header parsing and validation limits. The test helps detect whether front-end servers or WAFs properly limit header sizes and counts and whether malformed headers cause connection resets or parsing errors.
@@ -205,7 +205,7 @@ python tests/header_injection_test.py https://yourdomain.com
 - `--many-headers` (int, default 200): Number of headers to send in the "many headers" case
 - `--duplicate-count` (int, default 50): Number of duplicate values simulated (comma-separated simulation)
 
-### SQL Injection Test (sql_injection_test.py)
+### [SQL Injection Test (sql_injection_test.py)](tests/sql_injection_test.py)
 
 **Description:**
 Sends a curated set of benign-but-malicious-looking SQL injection payloads (via URL parameters and request bodies) to detect whether the server has input validation, WAF protections, or error-message leakage that indicates potential SQL injection vulnerability.
@@ -241,7 +241,7 @@ python tests/sql_injection_test.py https://yourdomain.com/search
 - `--concurrency` (int, default 5): Parallel workers
 - `--duration` (int, default 20): Test duration in seconds
 
-### Protocol Confusion Test (protocol_confusion_test.py)
+### [Protocol Confusion Test (protocol_confusion_test.py)](tests/protocol_confusion_test.py)
 
 **Description:**
 Sends intentionally malformed HTTP requests to validate the server's protocol-compliance and parser robustness. It tests the server's ability to handle missing CRLF sequences, invalid HTTP methods, wrong protocol versions, malformed chunk boundaries, and other HTTP grammar violations. The goal is to discover whether the server fails safely with graceful 4xx errors or if it crashes, hangs, or exhibits unexpected behavior.
@@ -277,7 +277,7 @@ python tests/protocol_confusion_test.py yourdomain.com
 - `--scheme` (str): Protocol scheme (`http` or `https`)
 - `--duration` (int): Test duration in seconds
 
-### Malformed Request Test (malformed_request_test.py)
+### [Malformed Request Test (malformed_request_test.py)](tests/malformed_request_test.py)
 
 **Description:**
 Sends requests with structurally invalid payloads and header/body mismatches (e.g., `Content-Length` not matching body size, chunked encoding errors, broken multipart boundaries) to verify whether the server properly validates request framing and returns safe error responses rather than exposing stack traces or leaking internal state.
@@ -311,7 +311,7 @@ python tests/malformed_request_test.py https://yourdomain.com
 - `--concurrency` (int): Number of parallel workers
 - `--duration` (int): Test duration in seconds
 
-### Auth Brute-Force Test (auth_bruteforce_test.py)
+### [Auth Brute-Force Test (auth_bruteforce_test.py)](tests/auth_bruteforce_test.py)
 
 **Description:**
 Exercises authentication endpoints with low-rate credential trials to detect whether the server has account lockout, rate-limiting, or captcha defenses. The test sends configurable username/password combinations at controlled rates and records HTTP 200/401/429 responses and any account lock notifications. This test is intentionally rate-limited by default and should never be used against third-party services.
@@ -353,7 +353,7 @@ python tests/auth_bruteforce_test.py https://yourdomain.com
 - `--duration` (int): Test duration in seconds
 - `--rate-limit-delay` (float): Delay in seconds between each credential attempt (per worker)
 
-### Directory Traversal Test (directory_traversal_test.py)
+### [Directory Traversal Test (directory_traversal_test.py)](tests/directory_traversal_test.py)
 
 **Description:**
 Issues specially crafted path requests (e.g., `../`, encoded traversal sequences) and requests for known sensitive files to check for filesystem access leaks or incorrect path normalization. The test verifies server and application-layer path sanitization and returns observations like 200 (sensitive file returned), 403 (forbidden), or 404 (not found). The test is non-destructive and should only request public or non-sensitive endpoints in practice.
@@ -390,7 +390,7 @@ python tests/directory_traversal_test.py https://yourdomain.com
 - `--concurrency` (int): Number of parallel workers
 - `--duration` (int): Test duration in seconds
 
-### TLS Handshake Test (tls_handshake_test.py)
+### [TLS Handshake Test (tls_handshake_test.py)](tests/tls_handshake_test.py)
 
 **Description:**
 Performs a range of TLS/SSL negotiation scenarios — different protocol versions, cipher suites, and certificate validation — to detect weak configurations and handshake robustness. The test checks whether the server properly rejects obsolete TLS versions (e.g., SSLv3, TLSv1.0, TLSv1.1), offers only strong ciphers, validates certificates properly, and handles handshake robustness without crashing.
@@ -424,7 +424,7 @@ python tests/tls_handshake_test.py https://yourdomain.com
 **Arguments:**
 - `url`: Target URL (e.g., `https://yourdomain.com`)
 
-### WebSocket Flood Test (websocket_flood_test.py)
+### [WebSocket Flood Test (websocket_flood_test.py)](tests/websocket_flood_test.py)
 
 **Description:**
 Opens many concurrent WebSocket connections and/or sends high-frequency frames to test server support for real-time protocols. The test checks for connection limits, frame-dropping, server memory growth, and application-level backpressure handling. It is useful when the server hosts WebSocket or other persistent real-time services.
@@ -464,7 +464,7 @@ python tests/websocket_flood_test.py https://yourdomain.com
 - `--duration` (int): Test duration in seconds
 - `--frame-delay` (float): Delay in seconds between frames per connection
 
-### Resource Exhaustion (CPU) Test (resource_exhaustion_cpu_test.py)
+### [Resource Exhaustion (CPU) Test (resource_exhaustion_cpu_test.py)](tests/resource_exhaustion_cpu_test.py)
 
 **Description:**
 Triggers server-side expensive operations (safe, non-destructive inputs that cause heavy processing) to see whether CPU-intensive requests are protected by rate limits or cost-based throttling. Examples include requests that cause expensive regexes, large data parsing, or deeply nested JSON/XML processing on the server. The test monitors response times, error patterns, and detection of server degradation under load.
